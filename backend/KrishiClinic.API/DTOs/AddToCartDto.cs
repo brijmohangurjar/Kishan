@@ -15,3 +15,4 @@ namespace KrishiClinic.API.DTOs
         public int Quantity { get; set; }
     }
 }
+

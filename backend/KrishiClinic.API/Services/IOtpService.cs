@@ -7,3 +7,4 @@ namespace KrishiClinic.API.Services
         bool ValidateOtp(string otp);
     }
 }
+

@@ -32,3 +32,4 @@ namespace KrishiClinic.API.Models
         public DateTime? LastLoginAt { get; set; }
     }
 }
+

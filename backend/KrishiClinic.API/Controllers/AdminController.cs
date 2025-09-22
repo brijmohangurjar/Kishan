@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using KrishiClinic.API.Services;
 using KrishiClinic.API.Models;
+using KrishiClinic.API.DTOs;
 using System.Security.Claims;
 
 namespace KrishiClinic.API.Controllers
@@ -36,7 +37,75 @@ namespace KrishiClinic.API.Controllers
                 if (result == null)
                     return Unauthorized(new { message = "Invalid credentials" });
 
-                return Ok(new { token = result.Token, admin = result.Admin });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("create")]
+        public async Task<ActionResult<object>> CreateAdmin([FromBody] CreateAdminDto adminDto)
+        {
+            try
+            {
+                // Check if admin already exists
+                var existingAdmin = await _adminService.GetAdminByEmailAsync(adminDto.Email);
+                if (existingAdmin != null)
+                    return Conflict(new { message = "Admin with this email already exists" });
+
+                var admin = await _adminService.CreateAdminAsync(adminDto);
+                
+                return CreatedAtAction(nameof(CreateAdmin), new { id = admin.AdminId }, new { 
+                    message = "Admin created successfully",
+                    admin = new {
+                        adminId = admin.AdminId,
+                        name = admin.Name,
+                        email = admin.Email,
+                        role = admin.Role,
+                        isActive = admin.IsActive,
+                        createdAt = admin.CreatedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("create-brijmohan")]
+        public async Task<ActionResult<object>> CreateBrijmohanAdmin()
+        {
+            try
+            {
+                var adminDto = new CreateAdminDto
+                {
+                    Name = "Brijmohan Gurjar",
+                    Email = "brijmohangurjar48@gmail.com",
+                    Password = "Admin@123",
+                    Role = "SuperAdmin"
+                };
+
+                // Check if admin already exists
+                var existingAdmin = await _adminService.GetAdminByEmailAsync(adminDto.Email);
+                if (existingAdmin != null)
+                    return Ok(new { message = "Admin already exists", admin = existingAdmin });
+
+                var admin = await _adminService.CreateAdminAsync(adminDto);
+                
+                return Ok(new { 
+                    message = "Brijmohan admin created successfully",
+                    admin = new {
+                        adminId = admin.AdminId,
+                        name = admin.Name,
+                        email = admin.Email,
+                        role = admin.Role,
+                        isActive = admin.IsActive,
+                        createdAt = admin.CreatedAt
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -195,3 +264,4 @@ namespace KrishiClinic.API.Controllers
         public DateTime? DeliveredDate { get; set; }
     }
 }
+

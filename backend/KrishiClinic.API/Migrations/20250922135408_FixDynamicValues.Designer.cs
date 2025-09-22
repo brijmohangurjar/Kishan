@@ -4,6 +4,7 @@ using KrishiClinic.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KrishiClinic.API.Migrations
 {
     [DbContext(typeof(KrishiClinicDbContext))]
-    partial class KrishiClinicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922135408_FixDynamicValues")]
+    partial class FixDynamicValues
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,10 +77,10 @@ namespace KrishiClinic.API.Migrations
                         {
                             AdminId = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "brijmohangurjar48@gmail.com",
+                            Email = "admin@krishiclinic.com",
                             IsActive = true,
-                            Name = "Brijmohan Gurjar",
-                            Password = "$2a$11$rQZ8K3tXvL7hM9nP2qR1te8K5wF3sA6bC9dE1fG4hI7jK0lM3nP6q",
+                            Name = "Admin User",
+                            Password = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
                             Role = "SuperAdmin"
                         });
                 });

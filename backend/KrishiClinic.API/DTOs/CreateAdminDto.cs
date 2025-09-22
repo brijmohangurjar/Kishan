@@ -21,3 +21,4 @@ namespace KrishiClinic.API.DTOs
         public string Role { get; set; } = "Admin";
     }
 }
+

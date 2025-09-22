@@ -25,3 +25,4 @@ namespace KrishiClinic.API.DTOs
         public int StockQuantity { get; set; } = 0;
     }
 }
+

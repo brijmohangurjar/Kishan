@@ -24,3 +24,4 @@ namespace KrishiClinic.API.DTOs
         public bool? IsActive { get; set; }
     }
 }
+

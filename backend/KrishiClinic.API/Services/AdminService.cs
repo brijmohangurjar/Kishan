@@ -27,11 +27,17 @@ namespace KrishiClinic.API.Services
 
         public async Task<Admin> CreateAdminAsync(CreateAdminDto adminDto)
         {
+            Console.WriteLine($"Creating admin with email: {adminDto.Email}");
+            Console.WriteLine($"Original password: {adminDto.Password}");
+            
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(adminDto.Password);
+            Console.WriteLine($"Hashed password: {hashedPassword}");
+            
             var admin = new Admin
             {
                 Name = adminDto.Name,
                 Email = adminDto.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(adminDto.Password),
+                Password = hashedPassword,
                 Role = adminDto.Role,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -39,16 +45,28 @@ namespace KrishiClinic.API.Services
 
             _context.Admins.Add(admin);
             await _context.SaveChangesAsync();
+            
+            Console.WriteLine($"Admin created with ID: {admin.AdminId}");
             return admin;
         }
 
         public async Task<bool> VerifyAdminPasswordAsync(string email, string password)
         {
             var admin = await GetAdminByEmailAsync(email);
+            Console.WriteLine($"Admin lookup for email: {email}");
+            Console.WriteLine($"Admin found: {admin != null}");
+            if (admin != null)
+            {
+                Console.WriteLine($"Admin IsActive: {admin.IsActive}");
+                Console.WriteLine($"Admin Password Hash: {admin.Password}");
+            }
+            
             if (admin == null || !admin.IsActive)
                 return false;
 
-            return BCrypt.Net.BCrypt.Verify(password, admin.Password);
+            var isValid = BCrypt.Net.BCrypt.Verify(password, admin.Password);
+            Console.WriteLine($"Password verification result: {isValid}");
+            return isValid;
         }
 
         public async Task<string> GenerateJwtTokenAsync(Admin admin)

@@ -14,3 +14,4 @@ namespace KrishiClinic.API.DTOs
         public string? Address { get; set; }
     }
 }
+

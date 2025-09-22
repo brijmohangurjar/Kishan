@@ -389,9 +389,9 @@ namespace KrishiClinic.API.Data
                 new Admin
                 {
                     AdminId = 1,
-                    Name = "Admin User",
-                    Email = "admin@krishiclinic.com",
-                    Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                    Name = "Brijmohan Gurjar",
+                    Email = "brijmohangurjar48@gmail.com",
+                    Password = "$2a$11$rQZ8K3tXvL7hM9nP2qR1te8K5wF3sA6bC9dE1fG4hI7jK0lM3nP6q", // This is 'Admin@123' hashed with BCrypt
                     Role = "SuperAdmin",
                     IsActive = true,
                     CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)

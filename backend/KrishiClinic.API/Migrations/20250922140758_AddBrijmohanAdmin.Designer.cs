@@ -4,6 +4,7 @@ using KrishiClinic.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KrishiClinic.API.Migrations
 {
     [DbContext(typeof(KrishiClinicDbContext))]
-    partial class KrishiClinicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922140758_AddBrijmohanAdmin")]
+    partial class AddBrijmohanAdmin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -77,7 +80,7 @@ namespace KrishiClinic.API.Migrations
                             Email = "brijmohangurjar48@gmail.com",
                             IsActive = true,
                             Name = "Brijmohan Gurjar",
-                            Password = "$2a$11$rQZ8K3tXvL7hM9nP2qR1te8K5wF3sA6bC9dE1fG4hI7jK0lM3nP6q",
+                            Password = "$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
                             Role = "SuperAdmin"
                         });
                 });

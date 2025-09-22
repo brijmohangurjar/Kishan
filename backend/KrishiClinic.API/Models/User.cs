@@ -28,6 +28,8 @@ namespace KrishiClinic.API.Models
 
         public DateTime? OTPExpiry { get; set; }
 
+        public bool IsActive { get; set; } = true;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
@@ -37,3 +39,4 @@ namespace KrishiClinic.API.Models
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }
+
