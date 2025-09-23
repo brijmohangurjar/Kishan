@@ -15,5 +15,6 @@ namespace KrishiClinic.API.Services
         Task<IEnumerable<object>> GetCategoriesAsync();
         Task<int> GetProductCountAsync();
         Task<int> GetLowStockProductCountAsync();
+        Task<IEnumerable<Product>> GetAllProductsForAdminAsync();
     }
 }

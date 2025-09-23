@@ -56,6 +56,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<IVideoService, VideoService>();
 
 var app = builder.Build();
 

@@ -105,7 +105,7 @@ namespace KrishiClinic.API.Services
             return otp;
         }
 
-        public async Task<string> GenerateJwtTokenAsync(User user)
+        public string GenerateJwtTokenAsync(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "");

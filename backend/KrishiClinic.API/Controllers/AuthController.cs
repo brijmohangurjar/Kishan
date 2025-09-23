@@ -50,7 +50,7 @@ namespace KrishiClinic.API.Controllers
                 if (user == null)
                     return NotFound(new { message = "User not found" });
 
-                var token = await _userService.GenerateJwtTokenAsync(user);
+                var token = _userService.GenerateJwtTokenAsync(user);
                 return Ok(new { token = token, user = user });
             }
             catch (Exception ex)
@@ -73,7 +73,7 @@ namespace KrishiClinic.API.Controllers
                     return Conflict(new { message = "User with this mobile number already exists" });
 
                 var user = await _userService.CreateUserAsync(userDto);
-                var token = await _userService.GenerateJwtTokenAsync(user);
+                var token = _userService.GenerateJwtTokenAsync(user);
                 
                 return CreatedAtAction(nameof(GetUserProfile), new { id = user.UserId }, new { token = token, user = user });
             }
@@ -177,7 +177,7 @@ namespace KrishiClinic.API.Controllers
         }
 
         [HttpPost("admin/fix-password")]
-        public async Task<ActionResult<object>> FixPassword([FromBody] AdminLoginDto loginDto)
+        public ActionResult<object> FixPassword([FromBody] AdminLoginDto loginDto)
         {
             try
             {

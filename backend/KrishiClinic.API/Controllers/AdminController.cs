@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using KrishiClinic.API.Services;
 using KrishiClinic.API.Models;
 using KrishiClinic.API.DTOs;
+using KrishiClinic.API.Data;
 using System.Security.Claims;
 
 namespace KrishiClinic.API.Controllers
@@ -15,17 +16,20 @@ namespace KrishiClinic.API.Controllers
         private readonly IProductService _productService;
         private readonly IUserService _userService;
         private readonly IOrderService _orderService;
+        private readonly KrishiClinicDbContext _context;
 
         public AdminController(
             IAdminService adminService,
             IProductService productService,
             IUserService userService,
-            IOrderService orderService)
+            IOrderService orderService,
+            KrishiClinicDbContext context)
         {
             _adminService = adminService;
             _productService = productService;
             _userService = userService;
             _orderService = orderService;
+            _context = context;
         }
 
         [HttpPost("login")]
@@ -164,6 +168,139 @@ namespace KrishiClinic.API.Controllers
             }
         }
 
+        [HttpPost("users")]
+        [Authorize]
+        public async Task<ActionResult<object>> CreateUser([FromBody] CreateUserDto userDto)
+        {
+            try
+            {
+                // Check if user already exists
+                var existingUser = await _userService.GetUserByMobileAsync(userDto.Mobile);
+                if (existingUser != null)
+                    return Conflict(new { message = "User with this mobile number already exists" });
+
+                var user = await _userService.CreateUserAsync(userDto);
+                
+                return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, new { 
+                    message = "User created successfully",
+                    user = new {
+                        userId = user.UserId,
+                        name = user.Name,
+                        mobile = user.Mobile,
+                        village = user.Village,
+                        isActive = user.IsActive,
+                        createdAt = user.CreatedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("users/{id}")]
+        [Authorize]
+        public async Task<ActionResult<object>> UpdateUser(int id, [FromBody] UpdateUserDto userDto)
+        {
+            try
+            {
+                var user = await _userService.UpdateUserAsync(id, userDto);
+                if (user == null)
+                    return NotFound(new { message = "User not found" });
+
+                return Ok(new { 
+                    message = "User updated successfully",
+                    user = new {
+                        userId = user.UserId,
+                        name = user.Name,
+                        mobile = user.Mobile,
+                        village = user.Village,
+                        isActive = user.IsActive,
+                        updatedAt = user.UpdatedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("users/{id}")]
+        [Authorize]
+        public async Task<ActionResult> DeleteUser(int id)
+        {
+            try
+            {
+                var success = await _userService.DeleteUserAsync(id);
+                if (!success)
+                    return NotFound(new { message = "User not found" });
+
+                return Ok(new { message = "User deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("db-check")]
+        [Authorize]
+        public async Task<ActionResult<object>> DatabaseCheck()
+        {
+            try
+            {
+                // Check if we can connect to the database at all
+                var canConnect = await _context.Database.CanConnectAsync();
+                if (!canConnect)
+                {
+                    return StatusCode(500, new { message = "Cannot connect to database" });
+                }
+
+                return Ok(new { 
+                    message = "Database connection successful",
+                    canConnect = canConnect,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DatabaseCheck: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Database check failed", details = ex.Message });
+            }
+        }
+
+        [HttpGet("simple-test")]
+        [Authorize]
+        public ActionResult<object> SimpleTest()
+        {
+            return Ok(new { message = "Admin controller is working", timestamp = DateTime.UtcNow });
+        }
+
+        [HttpGet("orders-simple")]
+        [Authorize]
+        public async Task<ActionResult<object>> GetOrdersSimple()
+        {
+            try
+            {
+                // Try to get just the count first
+                var orderCount = await _orderService.GetOrderCountAsync();
+                return Ok(new { 
+                    message = "Orders query successful", 
+                    count = orderCount,
+                    timestamp = DateTime.UtcNow 
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetOrdersSimple: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Orders query failed", details = ex.Message });
+            }
+        }
+
         [HttpGet("orders")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<object>>> GetOrders()
@@ -175,7 +312,10 @@ namespace KrishiClinic.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                // Log the full exception details
+                Console.WriteLine($"Error in GetOrders: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
             }
         }
 
@@ -203,7 +343,7 @@ namespace KrishiClinic.API.Controllers
         {
             try
             {
-                var success = await _orderService.UpdateOrderStatusAsync(id, request.Status, request.ShippedDate, request.DeliveredDate);
+                var success = await _orderService.UpdateOrderStatusAsync(id, request.Status, request.GetShippedDate(), request.GetDeliveredDate());
                 if (!success)
                     return NotFound(new { message = "Order not found" });
 
@@ -215,27 +355,58 @@ namespace KrishiClinic.API.Controllers
             }
         }
 
-        [HttpGet("dashboard/stats")]
+        [HttpGet("stats")]
         [Authorize]
-        public async Task<ActionResult<object>> GetDashboardStats()
+        public async Task<ActionResult<object>> GetAdminStats()
         {
             try
             {
                 var stats = new
                 {
-                    totalProducts = await _productService.GetProductCountAsync(),
-                    totalUsers = await _userService.GetUserCountAsync(),
                     totalOrders = await _orderService.GetOrderCountAsync(),
+                    pendingOrders = await _orderService.GetOrderCountByStatusAsync("Pending"),
+                    confirmedOrders = await _orderService.GetOrderCountByStatusAsync("Confirmed"),
+                    shippedOrders = await _orderService.GetOrderCountByStatusAsync("Shipped"),
+                    deliveredOrders = await _orderService.GetOrderCountByStatusAsync("Delivered"),
+                    cancelledOrders = await _orderService.GetOrderCountByStatusAsync("Cancelled"),
                     totalRevenue = await _orderService.GetTotalRevenueAsync(),
-                    pendingOrders = await _orderService.GetPendingOrderCountAsync(),
-                    lowStockProducts = await _productService.GetLowStockProductCountAsync()
+                    recentOrders = await _orderService.GetRecentOrdersAsync(5)
                 };
 
                 return Ok(stats);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                // Log the full exception details
+                Console.WriteLine($"Error in GetAdminStats: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+            }
+        }
+
+        [HttpGet("test-db")]
+        [Authorize]
+        public async Task<ActionResult<object>> TestDatabase()
+        {
+            try
+            {
+                // Test basic database connection
+                var userCount = await _userService.GetUserCountAsync();
+                var productCount = await _productService.GetProductCountAsync();
+                var orderCount = await _orderService.GetOrderCountAsync();
+                
+                return Ok(new { 
+                    message = "Database connection successful",
+                    userCount = userCount,
+                    productCount = productCount,
+                    orderCount = orderCount
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in TestDatabase: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Database connection failed", details = ex.Message });
             }
         }
 
@@ -260,8 +431,22 @@ namespace KrishiClinic.API.Controllers
     public class UpdateOrderStatusRequest
     {
         public string Status { get; set; } = string.Empty;
-        public DateTime? ShippedDate { get; set; }
-        public DateTime? DeliveredDate { get; set; }
+        public string? ShippedDate { get; set; }
+        public string? DeliveredDate { get; set; }
+        
+        public DateTime? GetShippedDate()
+        {
+            if (string.IsNullOrEmpty(ShippedDate))
+                return null;
+            return DateTime.TryParse(ShippedDate, out var date) ? date : null;
+        }
+        
+        public DateTime? GetDeliveredDate()
+        {
+            if (string.IsNullOrEmpty(DeliveredDate))
+                return null;
+            return DateTime.TryParse(DeliveredDate, out var date) ? date : null;
+        }
     }
 }
 

@@ -11,7 +11,7 @@ namespace KrishiClinic.API.Services
         Task<bool> DeleteUserAsync(int userId);
         Task<bool> VerifyOtpAsync(string mobile, string otp);
         Task<string> GenerateOtpAsync(string mobile);
-        Task<string> GenerateJwtTokenAsync(User user);
+        string GenerateJwtTokenAsync(User user);
         Task<User?> GetUserByIdAsync(int userId);
         Task<IEnumerable<User>> GetAllUsersAsync();
         Task<bool> UpdateUserStatusAsync(int userId, bool isActive);

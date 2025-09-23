@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KrishiClinic.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c98ed86b1840e8c231f3ecdd112da9e48c64b1fc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+991377c894ed81bc3f0e14d07750b6dfdf34f5c6")]
 [assembly: System.Reflection.AssemblyProductAttribute("KrishiClinic.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KrishiClinic.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

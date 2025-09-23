@@ -14,14 +14,51 @@ namespace KrishiClinic.API.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<Order>> GetUserOrdersAsync(int userId)
+        public async Task<IEnumerable<object>> GetUserOrdersAsync(int userId)
         {
-            return await _context.Orders
+            var orders = await _context.Orders
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
+
+            // Convert to DTOs to avoid circular references
+            return orders.Select(o => new
+            {
+                orderId = o.OrderId,
+                userId = o.UserId,
+                orderNumber = o.OrderNumber,
+                totalAmount = o.TotalAmount,
+                status = o.Status,
+                paymentMethod = o.PaymentMethod,
+                deliveryAddress = o.DeliveryAddress,
+                deliveryVillage = o.DeliveryVillage,
+                orderDate = o.OrderDate,
+                shippedDate = o.ShippedDate,
+                deliveredDate = o.DeliveredDate,
+                createdAt = o.CreatedAt,
+                updatedAt = o.UpdatedAt,
+                orderItems = o.OrderItems.Select(oi => new
+                {
+                    orderItemId = oi.OrderItemId,
+                    productId = oi.ProductId,
+                    productName = oi.ProductName,
+                    quantity = oi.Quantity,
+                    unitPrice = oi.UnitPrice,
+                    totalPrice = oi.TotalPrice,
+                    productImageUrl = oi.ProductImageUrl,
+                    product = oi.Product != null ? new
+                    {
+                        productId = oi.Product.ProductId,
+                        name = oi.Product.Name,
+                        description = oi.Product.Description,
+                        price = oi.Product.Price,
+                        imageUrl = oi.Product.ImageUrl,
+                        category = oi.Product.Category
+                    } : null
+                })
+            });
         }
 
         public async Task<Order?> GetOrderByIdAsync(int orderId)
@@ -33,7 +70,7 @@ namespace KrishiClinic.API.Services
                 .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
 
-        public async Task<Order> CreateOrderAsync(CreateOrderDto orderDto)
+        public async Task<object> CreateOrderAsync(CreateOrderDto orderDto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -57,6 +94,7 @@ namespace KrishiClinic.API.Services
                 await _context.SaveChangesAsync();
 
                 decimal totalAmount = 0;
+                var orderItems = new List<object>();
 
                 foreach (var item in orderDto.OrderItems)
                 {
@@ -78,6 +116,18 @@ namespace KrishiClinic.API.Services
 
                     totalAmount += orderItem.TotalPrice;
                     _context.OrderItems.Add(orderItem);
+
+                    // Add to orderItems list for response
+                    orderItems.Add(new
+                    {
+                        orderItemId = orderItem.OrderItemId,
+                        productId = orderItem.ProductId,
+                        productName = orderItem.ProductName,
+                        quantity = orderItem.Quantity,
+                        unitPrice = orderItem.UnitPrice,
+                        totalPrice = orderItem.TotalPrice,
+                        productImageUrl = orderItem.ProductImageUrl
+                    });
                 }
 
                 order.TotalAmount = totalAmount;
@@ -90,7 +140,24 @@ namespace KrishiClinic.API.Services
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return order;
+                // Return DTO to avoid circular references
+                return new
+                {
+                    orderId = order.OrderId,
+                    userId = order.UserId,
+                    orderNumber = order.OrderNumber,
+                    totalAmount = order.TotalAmount,
+                    status = order.Status,
+                    paymentMethod = order.PaymentMethod,
+                    deliveryAddress = order.DeliveryAddress,
+                    deliveryVillage = order.DeliveryVillage,
+                    orderDate = order.OrderDate,
+                    shippedDate = order.ShippedDate,
+                    deliveredDate = order.DeliveredDate,
+                    createdAt = order.CreatedAt,
+                    updatedAt = order.UpdatedAt,
+                    orderItems = orderItems
+                };
             }
             catch
             {
@@ -134,14 +201,61 @@ namespace KrishiClinic.API.Services
             return true;
         }
 
-        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
+        public async Task<IEnumerable<object>> GetAllOrdersAsync()
         {
-            return await _context.Orders
+            var orders = await _context.Orders
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
                 .Include(o => o.User)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
+
+            // Convert to DTOs to avoid circular references
+            return orders.Select(o => new
+            {
+                orderId = o.OrderId,
+                userId = o.UserId,
+                orderNumber = o.OrderNumber,
+                totalAmount = o.TotalAmount,
+                status = o.Status,
+                paymentMethod = o.PaymentMethod,
+                deliveryAddress = o.DeliveryAddress,
+                deliveryVillage = o.DeliveryVillage,
+                orderDate = o.OrderDate,
+                shippedDate = o.ShippedDate,
+                deliveredDate = o.DeliveredDate,
+                createdAt = o.CreatedAt,
+                updatedAt = o.UpdatedAt,
+                user = new
+                {
+                    userId = o.User.UserId,
+                    name = o.User.Name,
+                    mobile = o.User.Mobile,
+                    village = o.User.Village,
+                    address = o.User.Address,
+                    isActive = o.User.IsActive,
+                    createdAt = o.User.CreatedAt
+                },
+                orderItems = o.OrderItems.Select(oi => new
+                {
+                    orderItemId = oi.OrderItemId,
+                    productId = oi.ProductId,
+                    productName = oi.ProductName,
+                    quantity = oi.Quantity,
+                    unitPrice = oi.UnitPrice,
+                    totalPrice = oi.TotalPrice,
+                    productImageUrl = oi.ProductImageUrl,
+                    product = oi.Product != null ? new
+                    {
+                        productId = oi.Product.ProductId,
+                        name = oi.Product.Name,
+                        description = oi.Product.Description,
+                        price = oi.Product.Price,
+                        imageUrl = oi.Product.ImageUrl,
+                        category = oi.Product.Category
+                    } : null
+                })
+            });
         }
 
         public async Task<decimal> GetOrderTotalAsync(int orderId)
@@ -186,6 +300,71 @@ namespace KrishiClinic.API.Services
             return await _context.Orders
                 .Where(o => o.Status == "Processing")
                 .CountAsync();
+        }
+
+        public async Task<int> GetOrderCountByStatusAsync(string status)
+        {
+            return await _context.Orders
+                .Where(o => o.Status == status)
+                .CountAsync();
+        }
+
+        public async Task<IEnumerable<object>> GetRecentOrdersAsync(int count)
+        {
+            var orders = await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Include(o => o.User)
+                .OrderByDescending(o => o.OrderDate)
+                .Take(count)
+                .ToListAsync();
+
+            // Convert to DTOs to avoid circular references
+            return orders.Select(o => new
+            {
+                orderId = o.OrderId,
+                userId = o.UserId,
+                orderNumber = o.OrderNumber,
+                totalAmount = o.TotalAmount,
+                status = o.Status,
+                paymentMethod = o.PaymentMethod,
+                deliveryAddress = o.DeliveryAddress,
+                deliveryVillage = o.DeliveryVillage,
+                orderDate = o.OrderDate,
+                shippedDate = o.ShippedDate,
+                deliveredDate = o.DeliveredDate,
+                createdAt = o.CreatedAt,
+                updatedAt = o.UpdatedAt,
+                user = new
+                {
+                    userId = o.User.UserId,
+                    name = o.User.Name,
+                    mobile = o.User.Mobile,
+                    village = o.User.Village,
+                    address = o.User.Address,
+                    isActive = o.User.IsActive,
+                    createdAt = o.User.CreatedAt
+                },
+                orderItems = o.OrderItems.Select(oi => new
+                {
+                    orderItemId = oi.OrderItemId,
+                    productId = oi.ProductId,
+                    productName = oi.ProductName,
+                    quantity = oi.Quantity,
+                    unitPrice = oi.UnitPrice,
+                    totalPrice = oi.TotalPrice,
+                    productImageUrl = oi.ProductImageUrl,
+                    product = oi.Product != null ? new
+                    {
+                        productId = oi.Product.ProductId,
+                        name = oi.Product.Name,
+                        description = oi.Product.Description,
+                        price = oi.Product.Price,
+                        imageUrl = oi.Product.ImageUrl,
+                        category = oi.Product.Category
+                    } : null
+                })
+            });
         }
     }
 }

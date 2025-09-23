@@ -83,7 +83,7 @@ namespace KrishiClinic.API.Controllers
                 orderDto.UserId = userId; // Override with authenticated user ID
                 
                 var order = await _orderService.CreateOrderAsync(orderDto);
-                return CreatedAtAction(nameof(GetOrder), new { orderId = order.OrderId }, order);
+                return CreatedAtAction(nameof(GetOrder), new { orderId = ((dynamic)order).orderId }, order);
             }
             catch (UnauthorizedAccessException)
             {
@@ -95,7 +95,10 @@ namespace KrishiClinic.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                // Log the full exception details
+                Console.WriteLine($"Error in CreateOrder: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
             }
         }
 

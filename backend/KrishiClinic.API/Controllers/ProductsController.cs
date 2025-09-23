@@ -96,6 +96,7 @@ namespace KrishiClinic.API.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<object>> CreateProduct([FromBody] CreateProductDto productDto)
         {
             if (!ModelState.IsValid)
@@ -113,6 +114,7 @@ namespace KrishiClinic.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult<object>> UpdateProduct(int id, [FromBody] UpdateProductDto productDto)
         {
             if (!ModelState.IsValid)
@@ -134,6 +136,7 @@ namespace KrishiClinic.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult> DeleteProduct(int id)
         {
             try
@@ -157,6 +160,21 @@ namespace KrishiClinic.API.Controllers
             {
                 var categories = await _productService.GetCategoriesAsync();
                 return Ok(categories);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("admin/all")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllProductsForAdmin()
+        {
+            try
+            {
+                var products = await _productService.GetAllProductsForAdminAsync();
+                return Ok(products);
             }
             catch (Exception ex)
             {

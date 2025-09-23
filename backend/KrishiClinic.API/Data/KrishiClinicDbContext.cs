@@ -15,6 +15,7 @@ namespace KrishiClinic.API.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public DbSet<Video> Videos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -102,6 +103,21 @@ namespace KrishiClinic.API.Data
                 entity.Property(e => e.Password).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.Role).HasMaxLength(20);
                 entity.HasIndex(e => e.Email).IsUnique();
+            });
+
+            // Video entity configuration
+            modelBuilder.Entity<Video>(entity =>
+            {
+                entity.HasKey(e => e.VideoId);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Description).HasMaxLength(1000);
+                entity.Property(e => e.VideoUrl).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.ThumbnailUrl).HasMaxLength(500);
+                entity.Property(e => e.Category).IsRequired().HasMaxLength(50);
+                entity.HasOne(e => e.CreatedByAdmin)
+                      .WithMany()
+                      .HasForeignKey(e => e.CreatedBy)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // Seed data for Products

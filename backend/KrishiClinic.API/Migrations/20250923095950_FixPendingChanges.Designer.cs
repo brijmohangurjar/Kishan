@@ -4,6 +4,7 @@ using KrishiClinic.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KrishiClinic.API.Migrations
 {
     [DbContext(typeof(KrishiClinicDbContext))]
-    partial class KrishiClinicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250923095950_FixPendingChanges")]
+    partial class FixPendingChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -598,62 +601,6 @@ namespace KrishiClinic.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("KrishiClinic.API.Models.Video", b =>
-                {
-                    b.Property<int>("VideoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("VideoId"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Duration")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ThumbnailUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("VideoUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.HasKey("VideoId");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.ToTable("Videos");
-                });
-
             modelBuilder.Entity("KrishiClinic.API.Models.Cart", b =>
                 {
                     b.HasOne("KrishiClinic.API.Models.Product", "Product")
@@ -701,16 +648,6 @@ namespace KrishiClinic.API.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("KrishiClinic.API.Models.Video", b =>
-                {
-                    b.HasOne("KrishiClinic.API.Models.Admin", "CreatedByAdmin")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("CreatedByAdmin");
                 });
 
             modelBuilder.Entity("KrishiClinic.API.Models.Order", b =>

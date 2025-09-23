@@ -48,9 +48,11 @@ namespace KrishiClinic.API.Services
             await _context.SaveChangesAsync();
             
             // Load the cart item with product for return
-            return await _context.Carts
+            var result = await _context.Carts
                 .Include(c => c.Product)
                 .FirstOrDefaultAsync(c => c.CartId == cartItem.CartId);
+            
+            return result ?? throw new InvalidOperationException("Failed to create cart item");
         }
 
         public async Task<Cart> UpdateCartItemAsync(int cartId, UpdateCartDto cartDto)

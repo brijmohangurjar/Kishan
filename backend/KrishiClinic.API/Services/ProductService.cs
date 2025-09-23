@@ -116,5 +116,12 @@ namespace KrishiClinic.API.Services
         {
             return await _context.Products.CountAsync(p => p.StockQuantity <= 5);
         }
+
+        public async Task<IEnumerable<Product>> GetAllProductsForAdminAsync()
+        {
+            return await _context.Products
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
     }
 }
