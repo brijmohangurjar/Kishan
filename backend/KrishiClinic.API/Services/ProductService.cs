@@ -32,6 +32,7 @@ namespace KrishiClinic.API.Services
                 Description = productDto.Description,
                 Price = productDto.Price,
                 ImageUrl = productDto.ImageUrl,
+                AdditionalImageUrls = productDto.AdditionalImageUrls,
                 Category = productDto.Category,
                 StockQuantity = productDto.StockQuantity,
                 IsActive = true,
@@ -57,6 +58,8 @@ namespace KrishiClinic.API.Services
                 product.Price = productDto.Price.Value;
             if (!string.IsNullOrEmpty(productDto.ImageUrl))
                 product.ImageUrl = productDto.ImageUrl;
+            if (productDto.AdditionalImageUrls != null)
+                product.AdditionalImageUrls = productDto.AdditionalImageUrls;
             if (!string.IsNullOrEmpty(productDto.Category))
                 product.Category = productDto.Category;
             if (productDto.StockQuantity.HasValue)

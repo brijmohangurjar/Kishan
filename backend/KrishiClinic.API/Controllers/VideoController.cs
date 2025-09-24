@@ -33,8 +33,8 @@ namespace KrishiClinic.API.Controllers
                     videoId = v.VideoId,
                     title = v.Title,
                     description = v.Description,
-                    videoUrl = v.VideoUrl,
-                    thumbnailUrl = v.ThumbnailUrl,
+                    videoUrl = GetFullVideoUrl(v.VideoUrl),
+                    thumbnailUrl = GetFullImageUrl(v.ThumbnailUrl),
                     category = v.Category,
                     duration = v.Duration,
                     displayOrder = v.DisplayOrder,
@@ -272,6 +272,40 @@ namespace KrishiClinic.API.Controllers
         {
             var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.Parse(adminIdClaim ?? "0");
+        }
+
+        private string GetFullVideoUrl(string videoUrl)
+        {
+            if (string.IsNullOrEmpty(videoUrl))
+                return string.Empty;
+
+            // If it's already a full URL, return as is
+            if (videoUrl.StartsWith("http://") || videoUrl.StartsWith("https://"))
+                return videoUrl;
+
+            // If it's a relative path, prepend the server URL
+            if (videoUrl.StartsWith("/"))
+                return $"http://localhost:5228{videoUrl}";
+
+            // If it doesn't start with /, assume it's a relative path
+            return $"http://localhost:5228/uploads/videos/{videoUrl}";
+        }
+
+        private string GetFullImageUrl(string imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl))
+                return string.Empty;
+
+            // If it's already a full URL, return as is
+            if (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://"))
+                return imageUrl;
+
+            // If it's a relative path, prepend the server URL
+            if (imageUrl.StartsWith("/"))
+                return $"http://localhost:5228{imageUrl}";
+
+            // If it doesn't start with /, assume it's a relative path
+            return $"http://localhost:5228/uploads/thumbnails/{imageUrl}";
         }
     }
 }

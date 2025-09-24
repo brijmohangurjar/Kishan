@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace KrishiClinic.API.DTOs
 {
@@ -19,10 +20,35 @@ namespace KrishiClinic.API.DTOs
         [StringLength(500)]
         public string ImageUrl { get; set; } = string.Empty;
 
+        [StringLength(2000)]
+        public string? AdditionalImageUrls { get; set; } // JSON array of additional image URLs
+
         [StringLength(100)]
         public string? Category { get; set; }
 
         public int StockQuantity { get; set; } = 0;
+
+        // Helper method to get additional image URLs as array
+        public string[] GetAdditionalImageUrlsArray()
+        {
+            if (string.IsNullOrEmpty(AdditionalImageUrls))
+                return new string[0];
+            
+            try
+            {
+                return JsonSerializer.Deserialize<string[]>(AdditionalImageUrls) ?? new string[0];
+            }
+            catch
+            {
+                return new string[0];
+            }
+        }
+
+        // Helper method to set additional image URLs from array
+        public void SetAdditionalImageUrlsArray(string[] urls)
+        {
+            AdditionalImageUrls = urls.Length > 0 ? JsonSerializer.Serialize(urls) : null;
+        }
     }
 }
 

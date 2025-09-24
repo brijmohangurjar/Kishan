@@ -45,7 +45,7 @@ namespace KrishiClinic.API.Controllers
                     name = p.Name,
                     description = p.Description,
                     price = p.Price,
-                    imageUrl = p.ImageUrl,
+                    imageUrl = GetFullImageUrl(p.ImageUrl),
                     category = p.Category,
                     cartQuantity = cartCounts.ContainsKey(p.ProductId) ? cartCounts[p.ProductId] : 0
                 });
@@ -60,7 +60,7 @@ namespace KrishiClinic.API.Controllers
                 name = p.Name,
                 description = p.Description,
                 price = p.Price,
-                imageUrl = p.ImageUrl,
+                imageUrl = GetFullImageUrl(p.ImageUrl),
                 category = p.Category,
                 cartQuantity = 0
             });
@@ -75,14 +75,39 @@ namespace KrishiClinic.API.Controllers
             if (product == null)
                 return NotFound();
 
-            return Ok(product);
+            var productDto = new
+            {
+                productId = product.ProductId,
+                name = product.Name,
+                description = product.Description,
+                price = product.Price,
+                imageUrl = GetFullImageUrl(product.ImageUrl),
+                category = product.Category,
+                stockQuantity = product.StockQuantity,
+                isActive = product.IsActive,
+                createdAt = product.CreatedAt,
+                updatedAt = product.UpdatedAt
+            };
+
+            return Ok(productDto);
         }
 
         [HttpGet("category/{category}")]
         public async Task<ActionResult<IEnumerable<object>>> GetProductsByCategory(string category)
         {
             var products = await _productService.GetProductsByCategoryAsync(category);
-            return Ok(products);
+            var productsWithFullUrls = products.Select(p => new
+            {
+                productId = p.ProductId,
+                name = p.Name,
+                description = p.Description,
+                price = p.Price,
+                imageUrl = GetFullImageUrl(p.ImageUrl),
+                category = p.Category,
+                stockQuantity = p.StockQuantity,
+                isActive = p.IsActive
+            });
+            return Ok(productsWithFullUrls);
         }
 
         [HttpGet("search")]
@@ -92,7 +117,18 @@ namespace KrishiClinic.API.Controllers
                 return BadRequest("Search query is required");
 
             var products = await _productService.SearchProductsAsync(q);
-            return Ok(products);
+            var productsWithFullUrls = products.Select(p => new
+            {
+                productId = p.ProductId,
+                name = p.Name,
+                description = p.Description,
+                price = p.Price,
+                imageUrl = GetFullImageUrl(p.ImageUrl),
+                category = p.Category,
+                stockQuantity = p.StockQuantity,
+                isActive = p.IsActive
+            });
+            return Ok(productsWithFullUrls);
         }
 
         [HttpPost]
@@ -180,6 +216,23 @@ namespace KrishiClinic.API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        private string GetFullImageUrl(string imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl))
+                return string.Empty;
+
+            // If it's already a full URL, return as is
+            if (imageUrl.StartsWith("http://") || imageUrl.StartsWith("https://"))
+                return imageUrl;
+
+            // If it's a relative path, prepend the server URL
+            if (imageUrl.StartsWith("/"))
+                return $"http://localhost:5228{imageUrl}";
+
+            // If it doesn't start with /, assume it's a relative path
+            return $"http://localhost:5228/uploads/images/{imageUrl}";
         }
     }
 }

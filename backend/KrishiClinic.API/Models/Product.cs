@@ -23,6 +23,9 @@ namespace KrishiClinic.API.Models
         [StringLength(500)]
         public string ImageUrl { get; set; } = string.Empty;
 
+        [StringLength(2000)]
+        public string? AdditionalImageUrls { get; set; } // JSON array of additional image URLs
+
         [StringLength(100)]
         public string? Category { get; set; }
 

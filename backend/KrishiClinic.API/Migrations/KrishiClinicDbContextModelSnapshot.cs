@@ -229,6 +229,10 @@ namespace KrishiClinic.API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ProductId"));
 
+                    b.Property<string>("AdditionalImageUrls")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
                     b.Property<string>("Category")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
