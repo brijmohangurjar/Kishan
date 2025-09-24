@@ -16,6 +16,7 @@ namespace KrishiClinic.API.Data
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Video> Videos { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +43,10 @@ namespace KrishiClinic.API.Data
                 entity.Property(e => e.Price).HasColumnType("decimal(10,2)");
                 entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
                 entity.Property(e => e.Category).HasMaxLength(100);
+                entity.HasOne(e => e.CategoryNavigation)
+                      .WithMany(c => c.Products)
+                      .HasForeignKey(e => e.CategoryId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // Cart entity configuration
@@ -118,6 +123,16 @@ namespace KrishiClinic.API.Data
                       .WithMany()
                       .HasForeignKey(e => e.CreatedBy)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // Category entity configuration
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.HasKey(e => e.CategoryId);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.ImageUrl).HasMaxLength(500);
+                entity.HasIndex(e => e.Name).IsUnique();
             });
 
             // Seed data for Products

@@ -92,6 +92,24 @@ namespace KrishiClinic.API.Controllers
             return Ok(productDto);
         }
 
+        [HttpGet("category/{categoryId:int}")]
+        public async Task<ActionResult<IEnumerable<object>>> GetProductsByCategoryId(int categoryId)
+        {
+            var products = await _productService.GetProductsByCategoryIdAsync(categoryId);
+            var productsWithFullUrls = products.Select(p => new
+            {
+                productId = p.ProductId,
+                name = p.Name,
+                description = p.Description,
+                price = p.Price,
+                imageUrl = GetFullImageUrl(p.ImageUrl),
+                category = p.CategoryNavigation?.Name ?? p.Category, // Use relationship name or fallback to old field
+                stockQuantity = p.StockQuantity,
+                isActive = p.IsActive
+            });
+            return Ok(productsWithFullUrls);
+        }
+
         [HttpGet("category/{category}")]
         public async Task<ActionResult<IEnumerable<object>>> GetProductsByCategory(string category)
         {
@@ -103,7 +121,7 @@ namespace KrishiClinic.API.Controllers
                 description = p.Description,
                 price = p.Price,
                 imageUrl = GetFullImageUrl(p.ImageUrl),
-                category = p.Category,
+                category = p.CategoryNavigation?.Name ?? p.Category, // Use relationship name or fallback to old field
                 stockQuantity = p.StockQuantity,
                 isActive = p.IsActive
             });

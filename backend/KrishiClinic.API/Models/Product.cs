@@ -27,7 +27,9 @@ namespace KrishiClinic.API.Models
         public string? AdditionalImageUrls { get; set; } // JSON array of additional image URLs
 
         [StringLength(100)]
-        public string? Category { get; set; }
+        public string? Category { get; set; } // Keep for backward compatibility
+
+        public int? CategoryId { get; set; } // Foreign key to Category
 
         public int StockQuantity { get; set; } = 0;
 
@@ -38,6 +40,7 @@ namespace KrishiClinic.API.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
+        public virtual Category? CategoryNavigation { get; set; }
         public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }

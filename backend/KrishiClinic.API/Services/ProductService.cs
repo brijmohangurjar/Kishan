@@ -83,11 +83,72 @@ namespace KrishiClinic.API.Services
             return true;
         }
 
-        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category)
+        public async Task<IEnumerable<Product>> GetProductsByCategoryIdAsync(int categoryId)
         {
             return await _context.Products
-                .Where(p => p.Category == category && p.IsActive)
+                .Include(p => p.CategoryNavigation)
+                .Where(p => p.CategoryId == categoryId && p.IsActive)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category)
+        {
+            // First try to find by CategoryId (new relationship)
+            // Try exact match first
+            var categoryEntity = await _context.Categories
+                .FirstOrDefaultAsync(c => c.Name == category && c.IsActive);
+            
+            // If no exact match, try trimming whitespace
+            if (categoryEntity == null)
+            {
+                categoryEntity = await _context.Categories
+                    .FirstOrDefaultAsync(c => c.Name.Trim() == category.Trim() && c.IsActive);
+            }
+            
+            // If still no match, try case-insensitive comparison
+            if (categoryEntity == null)
+            {
+                categoryEntity = await _context.Categories
+                    .FirstOrDefaultAsync(c => c.Name.Trim().ToLower() == category.Trim().ToLower() && c.IsActive);
+            }
+            
+            if (categoryEntity != null)
+            {
+                // Use the new CategoryId relationship
+                return await _context.Products
+                    .Include(p => p.CategoryNavigation)
+                    .Where(p => p.CategoryId == categoryEntity.CategoryId && p.IsActive)
+                    .ToListAsync();
+            }
+            else
+            {
+                // Fallback to old Category field for backward compatibility
+                // Try exact match first
+                var products = await _context.Products
+                    .Include(p => p.CategoryNavigation)
+                    .Where(p => p.Category == category && p.IsActive)
+                    .ToListAsync();
+                
+                // If no products found, try trimming whitespace
+                if (!products.Any())
+                {
+                    products = await _context.Products
+                        .Include(p => p.CategoryNavigation)
+                        .Where(p => p.Category.Trim() == category.Trim() && p.IsActive)
+                        .ToListAsync();
+                }
+                
+                // If still no products, try case-insensitive comparison
+                if (!products.Any())
+                {
+                    products = await _context.Products
+                        .Include(p => p.CategoryNavigation)
+                        .Where(p => p.Category.Trim().ToLower() == category.Trim().ToLower() && p.IsActive)
+                        .ToListAsync();
+                }
+                
+                return products;
+            }
         }
 
         public async Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm)

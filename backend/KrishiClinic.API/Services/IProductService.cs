@@ -10,6 +10,7 @@ namespace KrishiClinic.API.Services
         Task<Product> CreateProductAsync(CreateProductDto productDto);
         Task<Product> UpdateProductAsync(int productId, UpdateProductDto productDto);
         Task<bool> DeleteProductAsync(int productId);
+        Task<IEnumerable<Product>> GetProductsByCategoryIdAsync(int categoryId);
         Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category);
         Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm);
         Task<IEnumerable<object>> GetCategoriesAsync();
