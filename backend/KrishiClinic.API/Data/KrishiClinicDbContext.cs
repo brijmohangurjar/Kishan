@@ -17,6 +17,8 @@ namespace KrishiClinic.API.Data
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Video> Videos { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<SaleBuyCategory> SaleBuyCategories { get; set; }
+        public DbSet<SaleBuyProduct> SaleBuyProducts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -133,6 +135,36 @@ namespace KrishiClinic.API.Data
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.ImageUrl).HasMaxLength(500);
                 entity.HasIndex(e => e.Name).IsUnique();
+            });
+
+            // SaleBuyCategory entity configuration
+            modelBuilder.Entity<SaleBuyCategory>(entity =>
+            {
+                entity.HasKey(e => e.SaleBuyCategoryId);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.ImageUrl).HasMaxLength(500);
+                entity.HasIndex(e => e.Name).IsUnique();
+            });
+
+            // SaleBuyProduct entity configuration
+            modelBuilder.Entity<SaleBuyProduct>(entity =>
+            {
+                entity.HasKey(e => e.SaleBuyProductId);
+                entity.Property(e => e.FullName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.PlaceName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.ProductDescription).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.Price).HasColumnType("decimal(10,2)");
+                entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(15);
+                entity.Property(e => e.ImageUrls).HasMaxLength(2000);
+                entity.HasOne(e => e.SaleBuyCategory)
+                      .WithMany(c => c.SaleBuyProducts)
+                      .HasForeignKey(e => e.SaleBuyCategoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.CreatedByUser)
+                      .WithMany()
+                      .HasForeignKey(e => e.CreatedByUserId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Seed data for Products

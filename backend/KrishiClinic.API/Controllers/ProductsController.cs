@@ -199,7 +199,7 @@ namespace KrishiClinic.API.Controllers
                 if (!result)
                     return NotFound();
 
-                return NoContent();
+                return Ok(new { message = "Product deleted successfully" });
             }
             catch (Exception ex)
             {
@@ -227,8 +227,24 @@ namespace KrishiClinic.API.Controllers
         {
             try
             {
-                var products = await _productService.GetAllProductsForAdminAsync();
-                return Ok(products);
+                var products = await _productService.GetAllProductsAsync(); // Only active products
+                var productsWithStatus = products.Select(p => new
+                {
+                    productId = p.ProductId,
+                    name = p.Name,
+                    description = p.Description,
+                    price = p.Price,
+                    imageUrl = GetFullImageUrl(p.ImageUrl),
+                    additionalImageUrls = p.AdditionalImageUrls,
+                    category = p.Category,
+                    categoryId = p.CategoryId,
+                    stockQuantity = p.StockQuantity,
+                    isActive = p.IsActive,
+                    status = "Active",
+                    createdAt = p.CreatedAt,
+                    updatedAt = p.UpdatedAt
+                });
+                return Ok(productsWithStatus);
             }
             catch (Exception ex)
             {

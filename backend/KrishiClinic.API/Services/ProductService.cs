@@ -74,11 +74,24 @@ namespace KrishiClinic.API.Services
 
         public async Task<bool> DeleteProductAsync(int productId)
         {
-            var product = await _context.Products.FindAsync(productId);
+            var product = await _context.Products
+                .Include(p => p.Carts)
+                .Include(p => p.OrderItems)
+                .FirstOrDefaultAsync(p => p.ProductId == productId);
+            
             if (product == null)
                 return false;
 
+            // Delete related records first to avoid foreign key constraint issues
+            // Delete all cart items for this product
+            _context.Carts.RemoveRange(product.Carts);
+            
+            // Delete all order items for this product
+            _context.OrderItems.RemoveRange(product.OrderItems);
+            
+            // Now delete the product itself
             _context.Products.Remove(product);
+            
             await _context.SaveChangesAsync();
             return true;
         }
@@ -143,7 +156,7 @@ namespace KrishiClinic.API.Services
                 {
                     products = await _context.Products
                         .Include(p => p.CategoryNavigation)
-                        .Where(p => p.Category.Trim().ToLower() == category.Trim().ToLower() && p.IsActive)
+                        .Where(p => p.Category != null && p.Category.Trim().ToLower() == category.Trim().ToLower() && p.IsActive)
                         .ToListAsync();
                 }
                 

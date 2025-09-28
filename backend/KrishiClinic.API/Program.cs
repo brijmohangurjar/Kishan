@@ -59,6 +59,8 @@ builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IVideoService, VideoService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ISaleBuyCategoryService, SaleBuyCategoryService>();
+builder.Services.AddScoped<ISaleBuyProductService, SaleBuyProductService>();
 
 var app = builder.Build();
 

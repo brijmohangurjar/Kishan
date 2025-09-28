@@ -1,6 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using KrishiClinic.API.Services;
+using Microsoft.AspNetCore.Http;
+
+public class Base64ImageRequest
+{
+    public string Base64Data { get; set; } = string.Empty;
+    public string? FileName { get; set; }
+    public string? ContentType { get; set; }
+}
 
 namespace KrishiClinic.API.Controllers
 {
@@ -44,6 +52,61 @@ namespace KrishiClinic.API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error uploading image: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error", details = ex.Message });
+            }
+        }
+
+        [HttpPost("upload-image-base64")]
+        [Authorize]
+        public async Task<ActionResult<object>> UploadImageBase64([FromBody] Base64ImageRequest request, string folder = "images")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Base64Data))
+                {
+                    return BadRequest(new { message = "Base64 data is required" });
+                }
+
+                // Remove data URL prefix if present
+                var base64Data = request.Base64Data;
+                if (base64Data.Contains(","))
+                {
+                    base64Data = base64Data.Split(',')[1];
+                }
+
+                var bytes = Convert.FromBase64String(base64Data);
+                var fileName = request.FileName ?? $"image_{DateTime.Now.Ticks}.jpg";
+                
+                // Create a temporary file
+                var tempPath = Path.GetTempFileName();
+                await System.IO.File.WriteAllBytesAsync(tempPath, bytes);
+                
+                // Create IFormFile from the temporary file
+                var fileStream = new FileStream(tempPath, FileMode.Open);
+                var formFile = new FormFile(fileStream, 0, bytes.Length, "file", fileName)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = request.ContentType ?? "image/jpeg"
+                };
+
+                var imageUrl = await _fileUploadService.UploadImageAsync(formFile, folder);
+                
+                // Clean up temporary file
+                fileStream.Close();
+                System.IO.File.Delete(tempPath);
+                
+                return Ok(new
+                {
+                    success = true,
+                    imageUrl = imageUrl,
+                    fileName = fileName,
+                    fileSize = bytes.Length,
+                    message = "Image uploaded successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading base64 image: {ex.Message}");
                 return StatusCode(500, new { message = "Internal server error", details = ex.Message });
             }
         }

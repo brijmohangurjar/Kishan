@@ -249,12 +249,12 @@ namespace KrishiClinic.API.Services
             }
         }
 
-        public async Task<bool> DeleteImageAsync(string imagePath)
+        public Task<bool> DeleteImageAsync(string imagePath)
         {
             try
             {
                 if (string.IsNullOrEmpty(imagePath))
-                    return false;
+                    return Task.FromResult(false);
 
                 // Remove leading slash and convert to full path
                 var relativePath = imagePath.TrimStart('/');
@@ -263,15 +263,15 @@ namespace KrishiClinic.API.Services
                 if (File.Exists(fullPath))
                 {
                     File.Delete(fullPath);
-                    return true;
+                    return Task.FromResult(true);
                 }
 
-                return false;
+                return Task.FromResult(false);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error deleting image {imagePath}: {ex.Message}");
-                return false;
+                return Task.FromResult(false);
             }
         }
     }
